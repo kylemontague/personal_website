@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kyle Montague - Professor at Northumbria University</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="#about">About</a></li>
+                <li><a href="#publications">Publications</a></li>
+                <li><a href="#projects">Projects</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <!-- About Section -->
+        <section id="about" class="section">
+            <div class="container">
+                <h1>Kyle Montague</h1>
+                <div class="bio">
+                    <img src="profile.jpg" alt="Kyle Montague" class="profile-photo">
+                    <div class="bio-text">
+                        <p>
+                            I'm a Professor at Northumbria University and lead the NorSC Research Group. My research spans a breadth of topics and domains with the unifying vision - to address critical social problems and challenges by designing and configuring digital technologies that empower individuals and marginalised communities.
+                        </p>
+                        <p>
+                            More specifically, my work seeks to democratise access to the tools and processes by which we provision technologies and services that shape society.
+                        </p>
+                        <div class="education">
+                            <h3>Education</h3>
+                            <p><strong>PhD in Human-Computer Interaction</strong>, 2014<br>University of Dundee</p>
+                            <p><strong>BSc in Applied Computing</strong>, 2009<br>University of Dundee</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Publications Section -->
+        <section id="publications" class="section">
+            <div class="container">
+                <h2>Publications</h2>
+                <div id="publications-loading">Loading publications...</div>
+                <div id="publications-list"></div>
+            </div>
+        </section>
+
+        <!-- Projects Section -->
+        <section id="projects" class="section">
+            <div class="container">
+                <h2>Projects</h2>
+                <div id="projects-loading">Loading projects...</div>
+                <div id="projects-list"></div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="section">
+            <div class="container">
+                <h2>Contact</h2>
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <strong>Email:</strong> <a href="mailto:kyle.montague@northumbria.ac.uk">kyle.montague@northumbria.ac.uk</a>
+                    </div>
+                    <div class="contact-item">
+                        <strong>Office:</strong> CIS Building, Northumbria University
+                    </div>
+                    <div class="contact-item">
+                        <strong>Address:</strong> 
+                        School of Computing, Engineering and Information Sciences<br>
+                        Northumbria University<br>
+                        Newcastle upon Tyne<br>
+                        NE1 8ST, United Kingdom
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; <span id="year"></span> Kyle Montague. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

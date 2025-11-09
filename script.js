@@ -1,0 +1,325 @@
+// Set current year in footer
+document.getElementById('year').textContent = new Date().getFullYear();
+
+// Smooth scrolling for navigation links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    });
+});
+
+// Global storage for parsed publications (for citation lookup)
+let globalPublications = [];
+
+// BibTeX Parser
+function parseBibtex(bibtexText) {
+    const entries = [];
+    // Match each BibTeX entry
+    const entryRegex = /@(\w+)\{([^,]+),\s*([\s\S]*?)\n\}/g;
+    let match;
+
+    while ((match = entryRegex.exec(bibtexText)) !== null) {
+        const entryType = match[1];
+        const citeKey = match[2];
+        const fieldsText = match[3];
+
+        const entry = {
+            type: entryType,
+            key: citeKey,
+            fields: {}
+        };
+
+        // Parse fields
+        const fieldRegex = /(\w+)\s*=\s*\{([^}]*)\}|(\w+)\s*=\s*"([^"]*)"/g;
+        let fieldMatch;
+
+        while ((fieldMatch = fieldRegex.exec(fieldsText)) !== null) {
+            const fieldName = (fieldMatch[1] || fieldMatch[3]).toLowerCase();
+            const fieldValue = fieldMatch[2] || fieldMatch[4];
+            entry.fields[fieldName] = fieldValue.trim();
+        }
+
+        entries.push(entry);
+    }
+
+    return entries;
+}
+
+// Format authors for display
+function formatAuthors(authors) {
+    if (!authors) return 'Unknown Authors';
+    
+    // Split by 'and' and clean up
+    const authorList = authors.split(' and ').map(a => a.trim());
+    
+    if (authorList.length === 1) {
+        return authorList[0];
+    } else if (authorList.length === 2) {
+        return authorList.join(' and ');
+    } else {
+        const lastAuthor = authorList.pop();
+        return authorList.join(', ') + ', and ' + lastAuthor;
+    }
+}
+
+// Get first author's last name for citation
+function getFirstAuthorLastName(authors) {
+    if (!authors) return 'Unknown';
+    const firstAuthor = authors.split(' and ')[0].trim();
+    // Try to get last name (assumes "First Last" or "Last, First" format)
+    const parts = firstAuthor.split(',');
+    if (parts.length > 1) {
+        return parts[0].trim();
+    }
+    const nameParts = firstAuthor.split(' ');
+    return nameParts[nameParts.length - 1];
+}
+
+// Format a citation for in-text use
+function formatInTextCitation(entry) {
+    if (!entry) return '[Citation not found]';
+    const author = getFirstAuthorLastName(entry.fields.author);
+    const year = entry.fields.year || 'n.d.';
+    return `${author} et al. (${year})`;
+}
+
+// Find publication by citation key
+function findPublicationByKey(key) {
+    return globalPublications.find(pub => pub.key === key);
+}
+
+// Process citations in markdown text before rendering
+function processCitations(markdownText) {
+    // Find all citations in the format [@citekey]
+    const citationRegex = /\[@([^\]]+)\]/g;
+    const citations = [];
+    
+    let processedText = markdownText.replace(citationRegex, (match, citekey) => {
+        const pub = findPublicationByKey(citekey.trim());
+        if (pub) {
+            citations.push(pub);
+            const citationText = formatInTextCitation(pub);
+            // Create a link to the publication in the publications section
+            return `<a href="#pub-${pub.key}" class="citation-link" title="Click to view full publication details">${citationText}</a>`;
+        }
+        return `<span class="citation-missing">[${citekey}?]</span>`;
+    });
+    
+    return { processedText, citations };
+}
+
+// Generate a references section for a project
+function generateReferencesSection(citations) {
+    if (citations.length === 0) return '';
+    
+    // Remove duplicates
+    const uniqueCitations = Array.from(new Set(citations.map(c => c.key)))
+        .map(key => citations.find(c => c.key === key));
+    
+    let html = '<div class="project-references"><h4>References</h4><ul>';
+    
+    uniqueCitations.forEach(pub => {
+        const authors = formatAuthors(pub.fields.author);
+        const year = pub.fields.year || 'n.d.';
+        const title = pub.fields.title || 'Untitled';
+        const venue = pub.fields.journal || pub.fields.booktitle || '';
+        
+        html += `<li class="reference-item">`;
+        html += `${authors} (${year}). <em>${title}</em>.`;
+        if (venue) html += ` ${venue}.`;
+        
+        // Add links
+        if (pub.fields.doi) {
+            html += ` <a href="https://doi.org/${pub.fields.doi}" target="_blank">[DOI]</a>`;
+        }
+        if (pub.fields.url) {
+            html += ` <a href="${pub.fields.url}" target="_blank">[Link]</a>`;
+        }
+        if (pub.fields.pdf) {
+            html += ` <a href="${pub.fields.pdf}" target="_blank">[PDF]</a>`;
+        }
+        html += `</li>`;
+    });
+    
+    html += '</ul></div>';
+    return html;
+}
+
+// Render publications
+function renderPublications(entries) {
+    const container = document.getElementById('publications-list');
+    const loading = document.getElementById('publications-loading');
+    
+    if (entries.length === 0) {
+        loading.textContent = 'No publications found.';
+        return;
+    }
+
+    loading.style.display = 'none';
+
+    // Sort by year (descending)
+    entries.sort((a, b) => {
+        const yearA = parseInt(a.fields.year) || 0;
+        const yearB = parseInt(b.fields.year) || 0;
+        return yearB - yearA;
+    });
+
+    entries.forEach(entry => {
+        const pub = document.createElement('div');
+        pub.className = 'publication';
+        // Add ID for citation linking
+        pub.id = `pub-${entry.key}`;
+
+        // Title
+        const title = document.createElement('div');
+        title.className = 'publication-title';
+        title.textContent = entry.fields.title || 'Untitled';
+        pub.appendChild(title);
+
+        // Authors
+        if (entry.fields.author) {
+            const authors = document.createElement('div');
+            authors.className = 'publication-authors';
+            authors.textContent = formatAuthors(entry.fields.author);
+            pub.appendChild(authors);
+        }
+
+        // Venue (journal, booktitle, etc.)
+        const venue = entry.fields.journal || entry.fields.booktitle || entry.fields.publisher;
+        if (venue) {
+            const venueDiv = document.createElement('div');
+            venueDiv.className = 'publication-venue';
+            venueDiv.textContent = venue;
+            pub.appendChild(venueDiv);
+        }
+
+        // Year
+        if (entry.fields.year) {
+            const year = document.createElement('div');
+            year.className = 'publication-year';
+            year.textContent = entry.fields.year;
+            pub.appendChild(year);
+        }
+
+        // Links (DOI, URL, etc.)
+        const links = document.createElement('div');
+        links.className = 'publication-links';
+        
+        if (entry.fields.doi) {
+            const doiLink = document.createElement('a');
+            doiLink.href = `https://doi.org/${entry.fields.doi}`;
+            doiLink.textContent = 'DOI';
+            doiLink.target = '_blank';
+            links.appendChild(doiLink);
+        }
+        
+        if (entry.fields.url) {
+            const urlLink = document.createElement('a');
+            urlLink.href = entry.fields.url;
+            urlLink.textContent = 'Link';
+            urlLink.target = '_blank';
+            links.appendChild(urlLink);
+        }
+
+        if (entry.fields.pdf) {
+            const pdfLink = document.createElement('a');
+            pdfLink.href = entry.fields.pdf;
+            pdfLink.textContent = 'PDF';
+            pdfLink.target = '_blank';
+            links.appendChild(pdfLink);
+        }
+
+        if (links.children.length > 0) {
+            pub.appendChild(links);
+        }
+
+        container.appendChild(pub);
+    });
+}
+
+// Load publications from BibTeX file
+async function loadPublications() {
+    try {
+        const response = await fetch('publications.bib');
+        if (!response.ok) {
+            throw new Error('Could not load publications.bib');
+        }
+        const bibtexText = await response.text();
+        const entries = parseBibtex(bibtexText);
+        
+        // Store globally for citation lookup
+        globalPublications = entries;
+        
+        renderPublications(entries);
+        
+        // Load projects after publications are loaded (so citations work)
+        loadProjects();
+    } catch (error) {
+        console.error('Error loading publications:', error);
+        document.getElementById('publications-loading').textContent = 
+            'Error loading publications. Make sure publications.bib exists.';
+    }
+}
+
+// Load and render projects from markdown files
+async function loadProjects() {
+    const projectFiles = [
+        'project1.md',
+        'project2.md',
+        'project3.md'
+    ];
+
+    const container = document.getElementById('projects-list');
+    const loading = document.getElementById('projects-loading');
+
+    try {
+        let hasProjects = false;
+
+        for (const filename of projectFiles) {
+            try {
+                const response = await fetch(`projects/${filename}`);
+                if (!response.ok) continue;
+
+                const markdown = await response.text();
+                
+                // Process citations before converting markdown to HTML
+                const { processedText, citations } = processCitations(markdown);
+                
+                // Convert markdown to HTML
+                const html = marked.parse(processedText);
+                
+                // Generate references section
+                const referencesHtml = generateReferencesSection(citations);
+
+                const projectDiv = document.createElement('div');
+                projectDiv.className = 'project';
+                projectDiv.innerHTML = html + referencesHtml;
+                container.appendChild(projectDiv);
+
+                hasProjects = true;
+            } catch (error) {
+                console.log(`Could not load ${filename}`);
+            }
+        }
+
+        if (hasProjects) {
+            loading.style.display = 'none';
+        } else {
+            loading.textContent = 'No projects found. Add markdown files to the projects/ folder.';
+        }
+    } catch (error) {
+        console.error('Error loading projects:', error);
+        loading.textContent = 'Error loading projects.';
+    }
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    // Load publications first, then projects will load after
+    // (projects need publications loaded for citation lookup)
+    loadPublications();
+});
