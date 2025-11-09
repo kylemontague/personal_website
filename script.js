@@ -168,76 +168,114 @@ function renderPublications(entries) {
         return yearB - yearA;
     });
 
+    // Group publications by year
+    const publicationsByYear = {};
     entries.forEach(entry => {
-        const pub = document.createElement('div');
-        pub.className = 'publication';
-        // Add ID for citation linking
-        pub.id = `pub-${entry.key}`;
-
-        // Title
-        const title = document.createElement('div');
-        title.className = 'publication-title';
-        title.textContent = entry.fields.title || 'Untitled';
-        pub.appendChild(title);
-
-        // Authors
-        if (entry.fields.author) {
-            const authors = document.createElement('div');
-            authors.className = 'publication-authors';
-            authors.textContent = formatAuthors(entry.fields.author);
-            pub.appendChild(authors);
+        const year = entry.fields.year || 'Unknown';
+        if (!publicationsByYear[year]) {
+            publicationsByYear[year] = [];
         }
+        publicationsByYear[year].push(entry);
+    });
 
-        // Venue (journal, booktitle, etc.)
-        const venue = entry.fields.journal || entry.fields.booktitle || entry.fields.publisher;
-        if (venue) {
-            const venueDiv = document.createElement('div');
-            venueDiv.className = 'publication-venue';
-            venueDiv.textContent = venue;
-            pub.appendChild(venueDiv);
-        }
+    // Get sorted years
+    const years = Object.keys(publicationsByYear).sort((a, b) => {
+        if (a === 'Unknown') return 1;
+        if (b === 'Unknown') return -1;
+        return parseInt(b) - parseInt(a);
+    });
 
-        // Year
-        if (entry.fields.year) {
-            const year = document.createElement('div');
-            year.className = 'publication-year';
-            year.textContent = entry.fields.year;
-            pub.appendChild(year);
-        }
+    // Create year filter navigation
+    const yearFilter = document.getElementById('year-filter');
+    if (yearFilter && years.length > 1) {
+        yearFilter.innerHTML = '<strong>Jump to year:</strong> ';
+        years.forEach((year, index) => {
+            const link = document.createElement('a');
+            link.href = `#year-${year}`;
+            link.textContent = year;
+            link.className = 'year-link';
+            yearFilter.appendChild(link);
+            
+            if (index < years.length - 1) {
+                yearFilter.appendChild(document.createTextNode(' | '));
+            }
+        });
+        yearFilter.style.display = 'block';
+    }
 
-        // Links (DOI, URL, etc.)
-        const links = document.createElement('div');
-        links.className = 'publication-links';
-        
-        if (entry.fields.doi) {
-            const doiLink = document.createElement('a');
-            doiLink.href = `https://doi.org/${entry.fields.doi}`;
-            doiLink.textContent = 'DOI';
-            doiLink.target = '_blank';
-            links.appendChild(doiLink);
-        }
-        
-        if (entry.fields.url) {
-            const urlLink = document.createElement('a');
-            urlLink.href = entry.fields.url;
-            urlLink.textContent = 'Link';
-            urlLink.target = '_blank';
-            links.appendChild(urlLink);
-        }
+    // Render publications grouped by year
+    years.forEach(year => {
+        // Year heading with anchor
+        const yearHeading = document.createElement('h3');
+        yearHeading.className = 'year-heading';
+        yearHeading.id = `year-${year}`;
+        yearHeading.textContent = year;
+        container.appendChild(yearHeading);
 
-        if (entry.fields.pdf) {
-            const pdfLink = document.createElement('a');
-            pdfLink.href = entry.fields.pdf;
-            pdfLink.textContent = 'PDF';
-            pdfLink.target = '_blank';
-            links.appendChild(pdfLink);
-        }
+        // Render publications for this year
+        publicationsByYear[year].forEach(entry => {
+            const pub = document.createElement('div');
+            pub.className = 'publication';
+            // Add ID for citation linking
+            pub.id = `pub-${entry.key}`;
 
-        if (links.children.length > 0) {
-            pub.appendChild(links);
-        }
+            // Title
+            const title = document.createElement('div');
+            title.className = 'publication-title';
+            title.textContent = entry.fields.title || 'Untitled';
+            pub.appendChild(title);
 
-        container.appendChild(pub);
+            // Authors
+            if (entry.fields.author) {
+                const authors = document.createElement('div');
+                authors.className = 'publication-authors';
+                authors.textContent = formatAuthors(entry.fields.author);
+                pub.appendChild(authors);
+            }
+
+            // Venue (journal, booktitle, etc.)
+            const venue = entry.fields.journal || entry.fields.booktitle || entry.fields.publisher;
+            if (venue) {
+                const venueDiv = document.createElement('div');
+                venueDiv.className = 'publication-venue';
+                venueDiv.textContent = venue;
+                pub.appendChild(venueDiv);
+            }
+
+            // Links (DOI, URL, etc.)
+            const links = document.createElement('div');
+            links.className = 'publication-links';
+            
+            if (entry.fields.doi) {
+                const doiLink = document.createElement('a');
+                doiLink.href = `https://doi.org/${entry.fields.doi}`;
+                doiLink.textContent = 'DOI';
+                doiLink.target = '_blank';
+                links.appendChild(doiLink);
+            }
+            
+            if (entry.fields.url) {
+                const urlLink = document.createElement('a');
+                urlLink.href = entry.fields.url;
+                urlLink.textContent = 'Link';
+                urlLink.target = '_blank';
+                links.appendChild(urlLink);
+            }
+
+            if (entry.fields.pdf) {
+                const pdfLink = document.createElement('a');
+                pdfLink.href = entry.fields.pdf;
+                pdfLink.textContent = 'PDF';
+                pdfLink.target = '_blank';
+                links.appendChild(pdfLink);
+            }
+
+            if (links.children.length > 0) {
+                pub.appendChild(links);
+            }
+
+            container.appendChild(pub);
+        });
     });
 }
 
@@ -269,8 +307,7 @@ async function loadPublications() {
 async function loadProjects() {
     const projectFiles = [
         'project1.md',
-        'project2.md',
-        'project3.md'
+        'project2.md'
     ];
 
     const container = document.getElementById('projects-list');

@@ -127,12 +127,55 @@ h3 {
 }
 
 /* Publications Section */
+.year-filter {
+    display: none;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background-color: #fafafa;
+    border-radius: 3px;
+    text-align: center;
+}
+
+.year-filter strong {
+    margin-right: 0.5rem;
+    color: #1a1a1a;
+}
+
+.year-link {
+    color: #0066cc;
+    text-decoration: none;
+    padding: 0.2rem 0.5rem;
+    transition: background-color 0.2s ease;
+}
+
+.year-link:hover {
+    text-decoration: underline;
+    background-color: #e8f4ff;
+    border-radius: 3px;
+}
+
+.year-heading {
+    font-size: 1.5rem;
+    color: #1a1a1a;
+    margin-top: 2.5rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #0066cc;
+    font-weight: 600;
+    scroll-margin-top: 80px; /* Account for sticky header */
+}
+
+.year-heading:first-of-type {
+    margin-top: 0;
+}
+
 .publication {
     margin-bottom: 2rem;
     padding: 1.5rem;
     background-color: #fafafa;
     border-left: 3px solid #0066cc;
     transition: box-shadow 0.3s ease;
+    scroll-margin-top: 80px; /* Account for sticky header when jumping to citation */
 }
 
 .publication:hover {
