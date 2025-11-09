@@ -297,6 +297,22 @@ function renderPublications(entries) {
                 pub.appendChild(venueDiv);
             }
 
+            // DOI display (if available)
+            if (entry.fields.doi) {
+                const doiDiv = document.createElement('div');
+                doiDiv.className = 'publication-doi';
+                doiDiv.innerHTML = '<strong>DOI:</strong> ' + entry.fields.doi;
+                pub.appendChild(doiDiv);
+            }
+
+            // URL display (if available and no DOI)
+            if (entry.fields.url && !entry.fields.doi) {
+                const urlDiv = document.createElement('div');
+                urlDiv.className = 'publication-url';
+                urlDiv.innerHTML = '<strong>URL:</strong> ' + entry.fields.url;
+                pub.appendChild(urlDiv);
+            }
+
             // Links (DOI, URL, etc.)
             const links = document.createElement('div');
             links.className = 'publication-links';
