@@ -12,6 +12,58 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     });
 });
 
+// Mobile dropdown support - toggle on click
+function setupMobileDropdowns() {
+    if (window.innerWidth <= 768) {
+        const dropdownParents = document.querySelectorAll('.has-dropdown > a.nav-link');
+        
+        dropdownParents.forEach(link => {
+            link.addEventListener('click', function(e) {
+                const parent = this.parentElement;
+                const dropdown = parent.querySelector('.dropdown');
+                
+                if (dropdown) {
+                    // If clicking to toggle dropdown (not navigate)
+                    const isOpen = dropdown.style.display === 'block';
+                    
+                    // Close all other dropdowns
+                    document.querySelectorAll('.dropdown').forEach(d => {
+                        d.style.display = 'none';
+                    });
+                    
+                    // Toggle this dropdown
+                    if (!isOpen) {
+                        e.preventDefault(); // Prevent navigation
+                        dropdown.style.display = 'block';
+                    }
+                    // If already open, let it navigate
+                }
+            });
+        });
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.has-dropdown')) {
+                document.querySelectorAll('.dropdown').forEach(d => {
+                    d.style.display = 'none';
+                });
+            }
+        });
+    }
+}
+
+// Initialize mobile dropdowns
+setupMobileDropdowns();
+
+// Reinitialize on window resize
+let resizeTimer;
+window.addEventListener('resize', function() {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function() {
+        setupMobileDropdowns();
+    }, 250);
+});
+
 // Global storage for parsed publications (for citation lookup)
 let globalPublications = [];
 
@@ -185,6 +237,9 @@ function renderPublications(entries) {
         return parseInt(b) - parseInt(a);
     });
 
+    // Populate navigation dropdown with years
+    populatePublicationsDropdown(years);
+
     // Create year filter navigation
     const yearFilter = document.getElementById('year-filter');
     if (yearFilter && years.length > 1) {
@@ -279,6 +334,23 @@ function renderPublications(entries) {
     });
 }
 
+// Populate publications dropdown in navigation
+function populatePublicationsDropdown(years) {
+    const dropdown = document.getElementById('publications-dropdown');
+    if (!dropdown || years.length === 0) return;
+
+    dropdown.innerHTML = '';
+    
+    years.forEach(year => {
+        const li = document.createElement('li');
+        const link = document.createElement('a');
+        link.href = `#year-${year}`;
+        link.textContent = year;
+        li.appendChild(link);
+        dropdown.appendChild(li);
+    });
+}
+
 // Load publications from BibTeX file
 async function loadPublications() {
     try {
@@ -313,6 +385,7 @@ async function loadProjects() {
     let hasProjects = false;
     let projectNumber = 1;
     const maxAttempts = 20; // Try up to 20 projects
+    const projectTitles = []; // Store project titles for navigation
 
     while (projectNumber <= maxAttempts) {
         // Try both naming conventions: project-1.md and project1.md
@@ -326,6 +399,14 @@ async function loadProjects() {
 
                 const markdown = await response.text();
                 
+                // Extract title from markdown (first h3 heading)
+                const titleMatch = markdown.match(/###\s+(.+)/);
+                const projectTitle = titleMatch ? titleMatch[1].trim() : `Project ${projectNumber}`;
+                const projectId = `project-${projectNumber}`;
+                
+                // Store title for navigation dropdown
+                projectTitles.push({ title: projectTitle, id: projectId });
+                
                 // Process citations before converting markdown to HTML
                 const { processedText, citations } = processCitations(markdown);
                 
@@ -337,6 +418,7 @@ async function loadProjects() {
 
                 const projectDiv = document.createElement('div');
                 projectDiv.className = 'project';
+                projectDiv.id = projectId; // Add ID for anchor linking
                 projectDiv.innerHTML = html + referencesHtml;
                 container.appendChild(projectDiv);
 
@@ -358,9 +440,33 @@ async function loadProjects() {
 
     if (hasProjects) {
         loading.style.display = 'none';
+        // Populate navigation dropdown with project titles
+        populateProjectsDropdown(projectTitles);
     } else {
         loading.textContent = 'No projects found. Add markdown files named project-1.md, project-2.md, etc. to the projects/ folder.';
     }
+}
+
+// Populate projects dropdown in navigation
+function populateProjectsDropdown(projects) {
+    const dropdown = document.getElementById('projects-dropdown');
+    if (!dropdown || projects.length === 0) return;
+
+    dropdown.innerHTML = '';
+    
+    projects.forEach(project => {
+        const li = document.createElement('li');
+        const link = document.createElement('a');
+        link.href = `#${project.id}`;
+        link.textContent = project.title;
+        // Truncate long titles for dropdown
+        if (project.title.length > 50) {
+            link.textContent = project.title.substring(0, 47) + '...';
+            link.title = project.title; // Show full title on hover
+        }
+        li.appendChild(link);
+        dropdown.appendChild(li);
+    });
 }
 
 // Initialize when page loads

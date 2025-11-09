@@ -9,12 +9,22 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
-    <header>
+   <header>
         <nav>
-            <ul>
+            <ul class="nav-list">
                 <li><a href="#about">About</a></li>
-                <li><a href="#publications">Publications</a></li>
-                <li><a href="#projects">Projects</a></li>
+                <li class="has-dropdown">
+                    <a href="#publications" class="nav-link">Publications</a>
+                    <ul class="dropdown" id="publications-dropdown">
+                        <!-- Dynamically populated with years -->
+                    </ul>
+                </li>
+                <li class="has-dropdown">
+                    <a href="#projects" class="nav-link">Projects</a>
+                    <ul class="dropdown" id="projects-dropdown">
+                        <!-- Dynamically populated with project titles -->
+                    </ul>
+                </li>
                 <li><a href="#contact">Contact</a></li>
             </ul>
         </nav>
@@ -72,11 +82,11 @@
                         <strong>Email:</strong> <a href="mailto:kyle.montague@northumbria.ac.uk">kyle.montague@northumbria.ac.uk</a>
                     </div>
                     <div class="contact-item">
-                        <strong>Office:</strong> CIS Building, Northumbria University
+                        <strong>Office:</strong> Room 310, CIS Building, Northumbria University
                     </div>
                     <div class="contact-item">
                         <strong>Address:</strong> 
-                        School of Computing, Engineering and Information Sciences<br>
+                        School of Computer Sciences, Engineering and Information Sciences<br>
                         Northumbria University<br>
                         Newcastle upon Tyne<br>
                         NE1 8ST, United Kingdom

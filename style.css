@@ -38,6 +38,10 @@ nav ul {
     flex-wrap: wrap;
 }
 
+nav .nav-list {
+    position: relative;
+}
+
 nav a {
     color: #333;
     text-decoration: none;
@@ -48,6 +52,57 @@ nav a {
 
 nav a:hover {
     color: #0066cc;
+}
+
+/* Dropdown Navigation */
+.has-dropdown {
+    position: relative;
+}
+
+.dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    min-width: 180px;
+    margin-top: 0.5rem;
+    padding: 0.5rem 0;
+    z-index: 1000;
+}
+
+.has-dropdown:hover .dropdown {
+    display: block;
+}
+
+.dropdown li {
+    list-style: none;
+}
+
+.dropdown a {
+    display: block;
+    padding: 0.6rem 1.2rem;
+    color: #333;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    white-space: nowrap;
+}
+
+.dropdown a:hover {
+    background-color: #f5f5f5;
+    color: #0066cc;
+}
+
+/* Dropdown arrow indicator */
+.has-dropdown > a.nav-link::after {
+    content: ' ▾';
+    font-size: 0.8em;
+    opacity: 0.6;
 }
 
 /* Sections */
@@ -227,6 +282,12 @@ h3 {
     padding: 1.5rem;
     background-color: #fafafa;
     border-radius: 3px;
+    scroll-margin-top: 80px; /* Account for sticky header */
+}
+
+.project:target {
+    background-color: #fffacd;
+    transition: background-color 0.5s ease;
 }
 
 .project h3 {
@@ -385,5 +446,27 @@ footer {
     
     .section {
         padding: 2rem 0;
+    }
+    
+    /* Mobile dropdown behavior - tap to toggle */
+    .has-dropdown {
+        position: relative;
+    }
+    
+    .dropdown {
+        left: 0;
+        transform: none;
+        min-width: 200px;
+    }
+    
+    /* On mobile, make nav items stack better */
+    nav .nav-list {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .has-dropdown {
+        width: 100%;
+        text-align: center;
     }
 }
