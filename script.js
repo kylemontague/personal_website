@@ -304,19 +304,22 @@ async function loadPublications() {
 }
 
 // Load and render projects from markdown files
+// Uses simple naming convention: project-1.md, project-2.md, etc.
+// Or falls back to project1.md, project2.md if those exist
 async function loadProjects() {
-    const projectFiles = [
-        'project1.md',
-        'project2.md'
-    ];
-
     const container = document.getElementById('projects-list');
     const loading = document.getElementById('projects-loading');
 
-    try {
-        let hasProjects = false;
+    let hasProjects = false;
+    let projectNumber = 1;
+    const maxAttempts = 20; // Try up to 20 projects
 
-        for (const filename of projectFiles) {
+    while (projectNumber <= maxAttempts) {
+        // Try both naming conventions: project-1.md and project1.md
+        const filenames = [`project-${projectNumber}.md`, `project${projectNumber}.md`];
+        let loaded = false;
+
+        for (const filename of filenames) {
             try {
                 const response = await fetch(`projects/${filename}`);
                 if (!response.ok) continue;
@@ -338,19 +341,25 @@ async function loadProjects() {
                 container.appendChild(projectDiv);
 
                 hasProjects = true;
+                loaded = true;
+                break; // Found a file with this number, move to next
             } catch (error) {
-                console.log(`Could not load ${filename}`);
+                // File doesn't exist or failed to load, try next naming convention
             }
         }
 
-        if (hasProjects) {
-            loading.style.display = 'none';
-        } else {
-            loading.textContent = 'No projects found. Add markdown files to the projects/ folder.';
+        // If neither naming convention worked, we've found all projects
+        if (!loaded) {
+            break;
         }
-    } catch (error) {
-        console.error('Error loading projects:', error);
-        loading.textContent = 'Error loading projects.';
+
+        projectNumber++;
+    }
+
+    if (hasProjects) {
+        loading.style.display = 'none';
+    } else {
+        loading.textContent = 'No projects found. Add markdown files named project-1.md, project-2.md, etc. to the projects/ folder.';
     }
 }
 
